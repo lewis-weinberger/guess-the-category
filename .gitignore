@@ -1,0 +1,6 @@
+*~
+*.hi
+*.ho
+*.sh
+/cabal.project.local*
+/dist*
