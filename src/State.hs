@@ -36,12 +36,12 @@ newState seed cats =
 -- | Start a new round
 newGame :: State -> (Text, State)
 newGame state =
-    if S.size (lobby state) > 0
+    if S.size (lobby state) > 2
         then
-            if L.length (categories state) > 0
+            if L.length (categories state) > 1
                 then unsafeNewGame state
-                else ("No categories left to choose!", state)
-        else ("No players in the lobby!", state)
+                else ("Not enough categories left to choose! (2+ required)", state)
+        else ("Not enough players in the lobby! (3+ required)", state)
 
 -- | Start a new round (unsafe as assumes lobby has players)
 unsafeNewGame :: State -> (Text, State)
