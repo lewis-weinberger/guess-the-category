@@ -71,16 +71,16 @@ onInteraction _ _ = return ()
 -- | Slash commands to register with Discord
 slashCommands :: [CommandSpec]
 slashCommands =
-    [ CommandSpec "gtc_join" "Join the game lobby" joinCommand Nothing
-    , CommandSpec "gtc_leave" "Leave the game lobby" leaveCommand Nothing
+    [ CommandSpec "join" "Join the game lobby" joinCommand Nothing
+    , CommandSpec "leave" "Leave the game lobby" leaveCommand Nothing
     , CommandSpec
-        "gtc_set"
+        "set"
         "Set categories for game"
         setCommand
         (Just $ stringOption "categories" "New categories for the game")
-    , CommandSpec "gtc_new" "Start a new round" newCommand Nothing
+    , CommandSpec "new" "Start a new round" newCommand Nothing
     , CommandSpec
-        "gtc_reveal"
+        "reveal"
         "Reveal assignment for this round"
         revealCommand
         Nothing

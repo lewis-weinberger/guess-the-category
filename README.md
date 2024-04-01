@@ -24,9 +24,9 @@ cabal run
 
 The bot registers the following slash commands in Discord:
 
-- `gtc_join`: join the lobby to play the next round
-- `gtc_leave`: leave the lobby 
-- `gtc_set`: set the categories for the next round
-- `gtc_new`: start a new round
-- `gtc_reveal`: show the player their assignment (using an "ephemeral"
+- `join`: join the lobby to play the next round
+- `leave`: leave the lobby
+- `set`: set the categories for the next round
+- `new`: start a new round
+- `reveal`: show the player their assignment (using an "ephemeral"
 message)
