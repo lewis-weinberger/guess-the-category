@@ -8,20 +8,23 @@ license:            ISC
 license-file:       LICENSE
 author:             lewis-weinberger
 build-type:         Simple
+tested-with:        GHC == 9.6
 
 executable gtc
-    main-is:          Main.hs
-    build-depends:    base
-                    , text
-                    , discord-haskell
-                    , containers
-                    , random
-    ghc-options:     -Wall -threaded
-    hs-source-dirs:   src
-    other-modules:    Commands
-                    , State
-                    , Util
-    default-language: Haskell2010
+    main-is:            Main.hs
+    build-depends:      base
+                      , text
+                      , discord-haskell
+                      , containers
+                      , random
+    ghc-options:       -Wall -threaded
+    hs-source-dirs:     src
+    other-modules:      Commands
+                      , Defaults
+                      , State
+                      , Util
+    default-language:   Haskell2010
+    default-extensions: OverloadedStrings
 
 executable slash_clean
     main-is:          SlashClean.hs

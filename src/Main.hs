@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 {- | This is a Discord bot to play a simple guessing/deception game,
     based on the two examples "interaction-commands-simple.hs" and
     "state-counter.hs" from https://github.com/discord-haskell/discord-haskell
@@ -9,6 +7,7 @@ module Main where
 import Commands
 import Control.Concurrent.MVar
 import Data.List (find)
+import Defaults
 import Discord
 import Discord.Interactions
 import Discord.Types
@@ -84,23 +83,4 @@ slashCommands =
         "Reveal assignment for this round"
         revealCommand
         Nothing
-    ]
-
--- | Default game categories
-defaultCategories :: [Category]
-defaultCategories =
-    [ "Space Station"
-    , "Polar Station"
-    , "Service Station"
-    , "Submarine"
-    , "Cruise Ship"
-    , "Ferry"
-    , "Theatre"
-    , "Police Station"
-    , "Train"
-    , "Cinema"
-    , "Hospital"
-    , "School"
-    , "Office"
-    , "Supermarket"
     ]

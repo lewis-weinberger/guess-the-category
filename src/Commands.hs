@@ -1,5 +1,3 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module Commands (
     SlashCommand,
     CommandSpec (..),
@@ -17,6 +15,7 @@ import Control.Monad (void)
 import qualified Data.Set as S
 import Data.Text (Text)
 import qualified Data.Text as T
+import Defaults
 import Discord
 import Discord.Interactions
 import qualified Discord.Requests as R
@@ -40,7 +39,7 @@ data CommandSpec = CommandSpec
 stringOption :: Text -> Text -> Options
 stringOption n d = OptionsValues [s]
   where
-    s = OptionValueString n Nothing d Nothing True (Left False) (Just 1) Nothing
+    s = OptionValueString n Nothing d Nothing False (Left False) (Just 1) Nothing
 
 -- | Register a slash command with Discord server
 register ::
@@ -121,20 +120,20 @@ leaveCommand i _ s = manageLobby i s S.delete
 
 -- | Handle the set command
 setCommand :: SlashCommand
-setCommand
-    i
-    ( Just
-            (OptionsDataValues [OptionDataValueString{optionDataValueString = Right t}])
-        )
-    s = do
-        state <- get s
-        let categories' = T.splitOn "," t
-            state' = state{categories = categories'}
-            msg = showState state'
-        put s state'
-        respond i msg False
-        logger . T.unpack $ msg
-setCommand i _ _ = respond i "Set command requires argument!" False
+setCommand i o s = do
+    state <- get s
+    let state' = state{categories = categories'}
+        msg = showState state'
+    put s state'
+    respond i msg False
+    logger . T.unpack $ msg
+  where
+    categories' = case o of
+        Just
+            ( OptionsDataValues
+                    [OptionDataValueString{optionDataValueString = Right t}]
+                ) -> T.splitOn "," t
+        _ -> defaultCategories
 
 -- | Handle the new command
 newCommand :: SlashCommand

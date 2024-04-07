@@ -1,9 +1,8 @@
-{-# LANGUAGE OverloadedStrings #-}
-
 module State where
 
 import Control.Concurrent.MVar
 import Control.Monad.IO.Class
+import Data.Foldable (foldl')
 import qualified Data.List as L
 import qualified Data.Set as S
 import Data.Text (Text)
@@ -47,15 +46,16 @@ newGame state =
 unsafeNewGame :: State -> (Text, State)
 unsafeNewGame state = (msg, state')
   where
-    msg = showState state
-    (s, r) = uniformR (0, S.size (lobby state) - 1) (rng state)
+    (order, r) = questionOrder state
+    msg = showState state <> "\n\n" <> order
+    (s, r') = uniformR (0, S.size (lobby state) - 1) r
     spy' = S.elemAt s (lobby state)
-    (c, r') = uniformR (0, L.length (categories state) - 1) r
+    (c, r'') = uniformR (0, L.length (categories state) - 1) r'
     category' = (categories state) !! c
     categories' = L.delete category' (categories state)
     state' =
         state
-            { rng = r'
+            { rng = r''
             , categories = categories'
             , spy = Just spy'
             , category = Just category'
@@ -67,11 +67,26 @@ showState l = L.foldl' f "Categories in this round: " (categories l)
   where
     f s x = s <> "\n- " <> x
 
+-- | Helper to print users in lobby
+printLobby :: (Foldable a) => a User -> Text -> Text
+printLobby l t = foldl' f t l
+  where
+    userDisplay x = case userGlobalName x of
+        Just n -> " (" <> n <> ")"
+        Nothing -> ""
+    f s x = s <> "\n- " <> userName x <> userDisplay x
+
 -- | Helper to pretty-print lobby
 showLobby :: S.Set User -> Text
-showLobby l = S.foldl' f "Players currently in lobby: " l
+showLobby l = printLobby l "Players currently in lobby: "
+
+-- | Helper to select a player order for the round
+questionOrder :: State -> (Text, StdGen)
+questionOrder s = (msg, r)
   where
-    f s x = s <> "\n- " <> userName x
+    perms = L.permutations $ S.toList (lobby s)
+    (n, r) = uniformR (0, L.length perms - 1) (rng s)
+    msg = printLobby (perms !! n) "Question order: "
 
 -- | Helper to print current category
 showCategory :: State -> User -> Text
