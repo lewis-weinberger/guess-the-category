@@ -52,30 +52,34 @@ register i g CommandSpec{name = c, description = d, options = o} = do
   where
     x = CreateApplicationCommandChatInput c Nothing d Nothing o Nothing Nothing
 
--- | Helper to respond to interactions
-respond :: Interaction -> Text -> Bool -> DiscordHandler ()
+-- | Helper to respond to interactions with an embedded message
+respond :: Interaction -> [(Text, Text)] -> Bool -> DiscordHandler ()
 respond i m e =
     void . restCall $ R.CreateInteractionResponse intId token msg
   where
     intId = interactionId i
     token = interactionToken i
-    msg = if e then ephemeralResponse m else interactionResponseBasic m
+    msg = embedResponse m e
 
--- | Helper to create an ephemeral response
-ephemeralResponse :: Text -> InteractionResponse
-ephemeralResponse t = InteractionResponseChannelMessage (r t)
+-- | Create a simple embed with provided fields
+simpleEmbed :: [(Text, Text)] -> CreateEmbed
+simpleEmbed fields =
+    def
+        { createEmbedColor = Just DiscordColorDiscordBlurple
+        , createEmbedFields = map (\(n, v) -> EmbedField n v Nothing) fields
+        }
+
+-- | Helper to create an embedded response
+embedResponse :: [(Text, Text)] -> Bool -> InteractionResponse
+embedResponse fs e = InteractionResponseChannelMessage r
   where
-    r x =
-        InteractionResponseMessage
-            Nothing
-            (Just x)
-            Nothing
-            Nothing
-            (Just f)
-            Nothing
-            Nothing
-    -- the discord-haskell library has a typo in the following...
+    x = simpleEmbed fs
     f = InteractionResponseMessageFlags [InteractionResponseMessageFlagEphermeral]
+    r =
+        def
+            { interactionResponseMessageEmbeds = Just [x]
+            , interactionResponseMessageFlags = if e then Just f else Nothing
+            }
 
 -- | Helper to pattern match User from a MemberOrUser
 getUser :: MemberOrUser -> Maybe User
@@ -108,7 +112,7 @@ manageLobby i s f = withUser i s $ \user state -> do
         msg = showLobby (lobby state')
     put s state'
     respond i msg False
-    logger . T.unpack $ msg
+    logger . T.unpack $ "manageLobby: " <> userName user
 
 -- | Handle the join command
 joinCommand :: SlashCommand
@@ -126,7 +130,7 @@ setCommand i o s = do
         msg = showState state'
     put s state'
     respond i msg False
-    logger . T.unpack $ msg
+    logger $ "setCommand: " <> show categories'
   where
     categories' = case o of
         Just
@@ -142,7 +146,7 @@ newCommand i _ s = do
     let (msg, state') = newGame state
     put s state'
     respond i msg False
-    logger . T.unpack $ msg
+    logger $ "newCommand"
 
 -- | Handle the reveal command
 revealCommand :: SlashCommand
@@ -150,3 +154,4 @@ revealCommand i _ s = withUser i s $ \user state -> do
     let msg = showCategory state user
     put s state
     respond i msg True
+    logger . T.unpack $ "revealCommand: " <> userName user

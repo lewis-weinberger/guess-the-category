@@ -33,21 +33,21 @@ newState seed cats =
         }
 
 -- | Start a new round
-newGame :: State -> (Text, State)
+newGame :: State -> ([(Text, Text)], State)
 newGame state =
     if S.size (lobby state) > 2
         then
             if L.length (categories state) > 1
                 then unsafeNewGame state
-                else ("Not enough categories left to choose! (2+ required)", state)
-        else ("Not enough players in the lobby! (3+ required)", state)
+                else ([("Error", "Not enough categories left to choose! (2+ required)")], state)
+        else ([("Error", "Not enough players in the lobby! (3+ required)")], state)
 
 -- | Start a new round (unsafe as assumes lobby has players)
-unsafeNewGame :: State -> (Text, State)
+unsafeNewGame :: State -> ([(Text, Text)], State)
 unsafeNewGame state = (msg, state')
   where
     (order, r) = questionOrder state
-    msg = showState state <> "\n\n" <> order
+    msg = showState state <> order
     (s, r') = uniformR (0, S.size (lobby state) - 1) r
     spy' = S.elemAt s (lobby state)
     (c, r'') = uniformR (0, L.length (categories state) - 1) r'
@@ -62,14 +62,14 @@ unsafeNewGame state = (msg, state')
             }
 
 -- | Helper to pretty-print current round
-showState :: State -> Text
-showState l = L.foldl' f "Categories in this round: " (categories l)
+showState :: State -> [(Text, Text)]
+showState l = [("Categories in this round", L.foldl' f "" (categories l))]
   where
     f s x = s <> "\n- " <> x
 
 -- | Helper to print users in lobby
-printLobby :: (Foldable a) => a User -> Text -> Text
-printLobby l t = foldl' f t l
+printLobby :: (Foldable a) => a User -> Text
+printLobby l = foldl' f "" l
   where
     userDisplay x = case userGlobalName x of
         Just n -> " (" <> n <> ")"
@@ -77,22 +77,24 @@ printLobby l t = foldl' f t l
     f s x = s <> "\n- " <> userName x <> userDisplay x
 
 -- | Helper to pretty-print lobby
-showLobby :: S.Set User -> Text
-showLobby l = printLobby l "Players currently in lobby: "
+showLobby :: S.Set User -> [(Text, Text)]
+showLobby l = [("Players currently in lobby", printLobby l)]
 
 -- | Helper to select a player order for the round
-questionOrder :: State -> (Text, StdGen)
+questionOrder :: State -> ([(Text, Text)], StdGen)
 questionOrder s = (msg, r)
   where
     perms = L.permutations $ S.toList (lobby s)
     (n, r) = uniformR (0, L.length perms - 1) (rng s)
-    msg = printLobby (perms !! n) "Question order: "
+    msg = [("Question order", printLobby (perms !! n))]
 
 -- | Helper to print current category
-showCategory :: State -> User -> Text
-showCategory s u = case (spy s, category s) of
-    (Just u', Just c) -> "Category: " <> if u == u' then "???" else c
-    _ -> "Game not started! Use /gtc_new to start new round"
+showCategory :: State -> User -> [(Text, Text)]
+showCategory s u = [("Category", msg)]
+  where
+    msg = case (spy s, category s) of
+        (Just u', Just c) -> if u == u' then "???" else c
+        _ -> "Game not started! Use /gtc_new to start new round"
 
 -- | Abstraction to get current state
 get :: (MonadIO m) => MVar State -> m State
