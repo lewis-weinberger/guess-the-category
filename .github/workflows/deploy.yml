@@ -55,6 +55,7 @@ jobs:
         run: cabal build --program-suffix=-${{ matrix.os }} gtc
 
       - name: Package
+        run: echo TODO
       # TODO package executable with license, ready to upload
 
       - name: Deploy

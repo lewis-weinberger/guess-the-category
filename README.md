@@ -1,6 +1,6 @@
 > Guess the category!
 
-[![Check](https://github.com/lewis-weinberger/guess-the-category/actions/workflows/ci.yml/badge.svg)](https://github.com/lewis-weinberger/guess-the-category/actions/workflows/ci.yml)
+[![Check](https://github.com/lewis-weinberger/guess-the-category/actions/workflows/check.yml/badge.svg)](https://github.com/lewis-weinberger/guess-the-category/actions/workflows/check.yml)
 
 A simple guessing/deception game inspired by
 [Spyfall](https://spyfall.adrianocola.com/), using Discord
