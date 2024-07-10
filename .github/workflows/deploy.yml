@@ -1,0 +1,64 @@
+name: Deploy
+
+on:
+  push:
+    tags:
+      - '**'
+
+jobs:
+  deploy:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
+    name: Deploy
+    runs-on: ${{ matrix.os }}
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up GHC
+        uses: haskell-actions/setup@v2
+        id: setup
+        with:
+          ghc-version: '9.2'
+          cabal-version: '3.8.1.0'
+          cabal-update: true
+
+      - name: Configure
+        run: |
+          cabal configure --disable-documentation
+          cabal build --dry-run
+
+      - name: Restore cache
+        uses: actions/cache/restore@v4
+        id: cache
+        env:
+          key: ${{ runner.os }}-ghc-${{ steps.setup.outputs.ghc-version }}-cabal-${{ steps.setup.outputs.cabal-version }}
+        with:
+          path: ${{ steps.setup.outputs.cabal-store }}
+          key: ${{ env.key }}-plan-${{ hashFiles('**/plan.json') }}
+          restore-keys: ${{ env.key }}-
+
+      - name: Install dependencies
+        run: cabal build all --only-dependencies
+
+      - name: Cache dependencies
+        uses: actions/cache/save@v4
+        if: ${{ steps.cache.outputs.cache-primary-key != steps.cache.outputs.cache-matched-key }}
+        with:
+          path: ${{ steps.setup.outputs.cabal-store }}
+          key: ${{ steps.cache.outputs.cache-primary-key }}
+
+      - name: Build
+        run: cabal build --program-suffix=-${{ matrix.os }} gtc
+
+      - name: Package
+      # TODO package executable with license, ready to upload
+
+      - name: Deploy
+        uses: softprops/action-gh-release@v1
+        with:
+          files: gtc-${{ matrix.os }}.zip
+          draft: true
