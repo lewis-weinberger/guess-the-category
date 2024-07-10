@@ -1,4 +1,4 @@
-name: Check
+name: Build
 
 on:
   push:
@@ -10,9 +10,12 @@ permissions:
   contents: read
 
 jobs:
-  check:
+  build:
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest]
     name: Check
-    runs-on: [ubuntu-latest, windows-latest]
+    runs-on: ${{ matrix.os }}
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
